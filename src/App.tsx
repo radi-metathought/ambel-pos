@@ -8,7 +8,24 @@ import Stock from './components/Stock';
 import Table from './components/Table';
 import AdminLogin from './components/AdminLogin';
 import AdminDashboard from './components/AdminDashboard';
-// import Settings from './components/Settings';
+import ProtectedRoute from './components/ProtectedRoute';
+import OverviewPage from './pages/admin/OverviewPage';
+import { ProductsPage } from './pages/admin/ProductsPage';
+import { CategoriesPage } from './pages/admin/CategoriesPage';
+import { RecipesPage } from './pages/admin/RecipesPage';
+import { BranchesPage } from './pages/admin/BranchesPage';
+import TablesManagementPage from './pages/admin/TablesManagementPage';
+import {
+  PurchaseStockPage,
+  EmployeesPage,
+  ExchangeRatePage,
+  CurrencyManagementPage,
+  OtherExpensePage,
+  ReportsPage,
+  UsersPage,
+  TaxSettingsPage,
+  SettingsPage,
+} from './pages/admin/PlaceholderPages';
 
 function App() {
   return (
@@ -18,8 +35,34 @@ function App() {
         
         <Routes>
           {/* Admin Routes - No Navbar */}
+          {/* Public: Admin Login Page */}
           <Route path="/admin" element={<AdminLogin />} />
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          
+          {/* Protected: Admin Dashboard and all sub-routes */}
+          <Route
+            path="/admin/dashboard"
+            element={
+              <ProtectedRoute>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<OverviewPage />} />
+            <Route path="products" element={<ProductsPage />} />
+            <Route path="categories" element={<CategoriesPage />} />
+            <Route path="recipes" element={<RecipesPage />} />
+            <Route path="purchase-stock" element={<PurchaseStockPage />} />
+            <Route path="branches" element={<BranchesPage />} />
+            <Route path="tables" element={<TablesManagementPage />} />
+            <Route path="employees" element={<EmployeesPage />} />
+            <Route path="exchange-rate" element={<ExchangeRatePage />} />
+            <Route path="currency-management" element={<CurrencyManagementPage />} />
+            <Route path="other-expense" element={<OtherExpensePage />} />
+            <Route path="reports" element={<ReportsPage />} />
+            <Route path="users" element={<UsersPage />} />
+            <Route path="tax-settings" element={<TaxSettingsPage />} />
+            <Route path="settings" element={<SettingsPage />} />
+          </Route>
 
           {/* Main App Routes - With Navbar */}
           <Route
@@ -34,8 +77,6 @@ function App() {
                       <Route path="/orders" element={<Orders />} />
                       <Route path="/stock" element={<Stock />} />
                       <Route path="/table" element={<Table />} />
-                      {/* <Route path="/history" element={<History />} /> */}
-                      {/* <Route path="/settings" element={<Settings />} /> */}
                     </Routes>
                   </div>
                 </main>

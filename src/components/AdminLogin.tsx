@@ -1,21 +1,33 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Lock, Mail, Shield } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
+import { authService } from '../services';
 
 const AdminLogin = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
+    rememberMe: false,
   });
   const [isLoading, setIsLoading] = useState(false);
 
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (authService.isAdminAuthenticated()) {
+      const from = (location.state as any)?.from?.pathname || '/admin/dashboard';
+      navigate(from, { replace: true });
+    }
+  }, [navigate, location]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [e.target.name]: value,
     });
   };
 
@@ -23,18 +35,23 @@ const AdminLogin = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate login - Replace with actual API call
-    setTimeout(() => {
-      if (formData.email && formData.password) {
-        // Store admin session
-        localStorage.setItem('adminAuth', 'true');
-        toast.success('Welcome back, Admin!');
-        navigate('/admin/dashboard');
-      } else {
-        toast.error('Please enter valid credentials');
-      }
+    try {
+      await authService.adminLogin({
+        email: formData.email,
+        password: formData.password,
+      }, formData.rememberMe);
+      
+      toast.success('Welcome back, Admin!');
+      
+      // Redirect to the page they were trying to access, or dashboard by default
+      const from = (location.state as any)?.from?.pathname || '/admin/dashboard';
+      navigate(from, { replace: true });
+    } catch (error: any) {
+      const errorMessage = error.message || 'Invalid credentials. Please try again.';
+      toast.error(errorMessage);
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -126,8 +143,10 @@ const AdminLogin = () => {
               <div className="flex items-center">
                 <input
                   id="remember-me"
-                  name="remember-me"
+                  name="rememberMe"
                   type="checkbox"
+                  checked={formData.rememberMe}
+                  onChange={handleInputChange}
                   className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                 />
                 <label

@@ -1,4 +1,4 @@
-import { Home, ShoppingCart, Package, Users, BarChart3, Settings, LogOut } from 'lucide-react';
+import { Home, ShoppingCart, Package, Users, BarChart3, Settings, LogOut, ChefHat } from 'lucide-react';
 import { useState } from 'react';
 
 interface SidebarProps {
@@ -10,6 +10,7 @@ const menuItems = [
   { id: 'dashboard', label: 'Dashboard', icon: Home },
   { id: 'orders', label: 'Orders', icon: ShoppingCart },
   { id: 'products', label: 'Products', icon: Package },
+  { id: 'recipes', label: 'Recipes', icon: ChefHat },
   { id: 'customers', label: 'Customers', icon: Users },
   { id: 'analytics', label: 'Analytics', icon: BarChart3 },
   { id: 'settings', label: 'Settings', icon: Settings },

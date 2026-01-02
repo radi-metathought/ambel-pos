@@ -1,8 +1,9 @@
 import axios from 'axios';
 import type { AxiosInstance, AxiosError } from 'axios';
 import toast from 'react-hot-toast';
+import { secureTokenStorage } from './tokenStorage';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 class ApiService {
   private client: AxiosInstance;
@@ -26,8 +27,9 @@ class ApiService {
     // Request interceptor
     this.client.interceptors.request.use(
       (config) => {
-        // Add auth token if available
-        const token = localStorage.getItem('auth_token');
+        // Add auth token if available (check admin token first, then regular token)
+        const adminToken = secureTokenStorage.getToken('adminToken');
+        const token = adminToken || secureTokenStorage.getToken('authToken');
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
@@ -126,15 +128,67 @@ class ApiService {
   /**
    * Set auth token
    */
-  setAuthToken(token: string): void {
-    localStorage.setItem('auth_token', token);
+  setAuthToken(token: string, rememberMe: boolean = false, expiresIn?: number): void {
+    if (rememberMe) {
+      secureTokenStorage.setTokenPersistent('authToken', token, expiresIn);
+    } else {
+      secureTokenStorage.setToken('authToken', token, expiresIn);
+    }
   }
 
   /**
    * Clear auth token
    */
   clearAuthToken(): void {
-    localStorage.removeItem('auth_token');
+    secureTokenStorage.removeToken('authToken');
+  }
+
+  /**
+   * Set admin auth token
+   */
+  setAdminToken(token: string, rememberMe: boolean = false, expiresIn?: number): void {
+    if (rememberMe) {
+      secureTokenStorage.setTokenPersistent('adminToken', token, expiresIn);
+    } else {
+      secureTokenStorage.setToken('adminToken', token, expiresIn);
+    }
+    // Keep adminAuth flag in sessionStorage for quick checks
+    sessionStorage.setItem('adminAuth', 'true');
+  }
+
+  /**
+   * Clear admin auth token
+   */
+  clearAdminToken(): void {
+    secureTokenStorage.removeToken('adminToken');
+    sessionStorage.removeItem('adminAuth');
+    sessionStorage.removeItem('adminUser');
+    // Also clear from localStorage (migration from old implementation)
+    localStorage.removeItem('adminToken');
+    localStorage.removeItem('adminAuth');
+    localStorage.removeItem('adminUser');
+  }
+
+  /**
+   * Get current auth token (admin or regular)
+   */
+  getAuthToken(): string | null {
+    return secureTokenStorage.getToken('adminToken') || secureTokenStorage.getToken('authToken');
+  }
+
+  /**
+   * Check if token is expiring soon
+   */
+  isTokenExpiringSoon(): boolean {
+    return secureTokenStorage.isTokenExpiringSoon('adminToken') || 
+           secureTokenStorage.isTokenExpiringSoon('authToken');
+  }
+
+  /**
+   * Get axios instance for custom requests
+   */
+  getClient(): AxiosInstance {
+    return this.client;
   }
 }
 

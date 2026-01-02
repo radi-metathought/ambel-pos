@@ -1,19 +1,21 @@
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Loader2 } from 'lucide-react';
 
 interface SelectOption {
-  value: string;
+  value: string | number;
   label: string;
 }
 
 interface SelectProps {
   label?: string;
-  value: string;
+  value: string | number;
   onChange: (value: string) => void;
   options: SelectOption[];
   placeholder?: string;
   required?: boolean;
   error?: string;
   className?: string;
+  loading?: boolean;
+  disabled?: boolean;
 }
 
 export default function Select({
@@ -25,6 +27,8 @@ export default function Select({
   required = false,
   error,
   className = '',
+  loading = false,
+  disabled = false,
 }: SelectProps) {
   return (
     <div className={className}>
@@ -37,20 +41,27 @@ export default function Select({
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className={`w-full h-11 px-4 pr-10 rounded-lg border-2 bg-white dark:bg-gray-900 text-gray-900 dark:text-white text-sm appearance-none focus:outline-none transition-all ${
+          disabled={disabled || loading}
+          className={`w-full h-11 px-4 pr-10 rounded-lg border-2 bg-white dark:bg-gray-900 text-gray-900 dark:text-white text-sm appearance-none focus:outline-none transition-all disabled:opacity-50 ${
             error
               ? 'border-red-500 focus:border-red-500 focus:ring-4 focus:ring-red-500/10'
               : 'border-gray-200 dark:border-gray-600 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10'
           }`}
         >
-          <option value="">{placeholder}</option>
-          {options.map((option) => (
+          <option value="">{loading ? 'Loading...' : placeholder}</option>
+          {!loading && options.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
             </option>
           ))}
         </select>
-        <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+          {loading ? (
+            <Loader2 className="w-4 h-4 text-emerald-500 animate-spin" />
+          ) : (
+            <ChevronDown className="w-5 h-5 text-gray-400" />
+          )}
+        </div>
       </div>
       {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
     </div>

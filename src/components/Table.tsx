@@ -1,104 +1,65 @@
-import { useState } from 'react';
-import { Search, SlidersHorizontal } from 'lucide-react';
-import { tables, activeOrders } from '../data/tableData';
+import { Search, SlidersHorizontal, Users } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import tableLayoutData from '../data/tableLayout.json';
+import { activeOrders } from '../data/tableData';
+import { useState } from 'react'; // Added useState import
 
 export default function Table() {
-  const [activeFloor, setActiveFloor] = useState(1);
+  const [areas] = useState(tableLayoutData.areas);
+  const [tablesList, setTablesList] = useState(tableLayoutData.tables);
+  const [activeAreaId, setActiveAreaId] = useState(areas[0]?.id || '');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
 
-  const filteredTables = tables.filter((table) => table.floor === activeFloor);
+  const activeArea = areas.find(a => a.id === activeAreaId);
+  const areaTables = tablesList.filter(t => t.areaId === activeAreaId);
+  
   const filteredOrders = activeOrders.filter((order) =>
     order.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
     order.id.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Create a grid layout for tables
-  const maxRow = Math.max(...filteredTables.map((t) => t.gridPosition.row));
-  const maxCol = Math.max(...filteredTables.map((t) => t.gridPosition.col));
-
-  const renderTableCard = (table: typeof tables[0]) => {
+  const renderTableCard = (table: any) => {
     const isOccupied = table.status === 'occupied';
-    const chairs = table.capacity;
+    const isSelected = selectedTableId === table.id;
 
     return (
-      <div
+      <motion.div
         key={table.id}
-        className={`relative flex flex-col items-center justify-center p-4 rounded-2xl transition-all cursor-pointer ${
-          isOccupied
-            ? 'bg-emerald-500 hover:bg-emerald-600'
-            : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'
-        }`}
+        initial={false}
+        animate={{
+          x: table.x,
+          y: table.y,
+          rotate: table.rotation,
+          scale: isSelected ? 1.05 : 1
+        }}
+        onClick={(e) => {
+          e.stopPropagation();
+          setSelectedTableId(table.id);
+        }}
+        className={`absolute cursor-pointer flex flex-col items-center justify-center transition-all duration-200 ${
+          table.type === 'round' ? 'rounded-full' : 'rounded-xl'
+        } ${
+          isSelected 
+            ? 'ring-2 ring-emerald-500 ring-offset-4 dark:ring-offset-gray-900 z-50' 
+            : 'hover:ring-2 hover:ring-gray-300 dark:hover:ring-gray-700 hover:ring-offset-2'
+        } ${
+          table.status === 'available' ? 'bg-emerald-500 shadow-emerald-500/20' :
+          table.status === 'occupied' ? 'bg-rose-500 shadow-rose-500/20' : 'bg-amber-500 shadow-amber-500/20'
+        } shadow-lg`}
         style={{
-          gridRow: table.gridPosition.row + 1,
-          gridColumn: table.gridPosition.col + 1,
-          minHeight: table.capacity > 4 ? '120px' : '100px',
+          width: table.width,
+          height: table.height,
         }}
       >
-        {/* Chairs representation */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="relative">
-            {/* Top chairs */}
-            <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 flex gap-1">
-              {Array.from({ length: Math.min(chairs, 2) }).map((_, i) => (
-                <div
-                  key={`top-${i}`}
-                  className={`w-4 h-3 rounded-t ${
-                    isOccupied ? 'bg-emerald-600' : 'bg-gray-300 dark:bg-gray-600'
-                  }`}
-                />
-              ))}
-            </div>
-            
-            {/* Bottom chairs */}
-            <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 flex gap-1">
-              {Array.from({ length: Math.min(chairs, 2) }).map((_, i) => (
-                <div
-                  key={`bottom-${i}`}
-                  className={`w-4 h-3 rounded-b ${
-                    isOccupied ? 'bg-emerald-600' : 'bg-gray-300 dark:bg-gray-600'
-                  }`}
-                />
-              ))}
-            </div>
-
-            {/* Left chairs (for 6-seat tables) */}
-            {chairs > 4 && (
-              <div className="absolute left-0 top-1/2 transform -translate-x-6 -translate-y-1/2">
-                <div
-                  className={`w-3 h-4 rounded-l ${
-                    isOccupied ? 'bg-emerald-600' : 'bg-gray-300 dark:bg-gray-600'
-                  }`}
-                />
-              </div>
-            )}
-
-            {/* Right chairs (for 6-seat tables) */}
-            {chairs > 4 && (
-              <div className="absolute right-0 top-1/2 transform translate-x-6 -translate-y-1/2">
-                <div
-                  className={`w-3 h-4 rounded-r ${
-                    isOccupied ? 'bg-emerald-600' : 'bg-gray-300 dark:bg-gray-600'
-                  }`}
-                />
-              </div>
-            )}
-          </div>
+        <div className="text-white font-bold text-sm select-none">
+          {table.name}
         </div>
-
-        {/* Table content */}
-        <div className="text-center z-10">
-          <p
-            className={`font-semibold text-sm ${
-              isOccupied ? 'text-white' : 'text-gray-900 dark:text-white'
-            }`}
-          >
-            {isOccupied ? table.number : table.number}
-          </p>
-          {!isOccupied && table.orderId && (
-            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{table.orderId}</p>
-          )}
+        <div className="flex items-center gap-1 text-[10px] text-white/80 font-bold select-none">
+          <Users className="w-3 h-3" />
+          {table.capacity}
         </div>
-      </div>
+      </motion.div>
     );
   };
 
@@ -112,30 +73,41 @@ export default function Table() {
 
         {/* Floor Tabs */}
         <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700">
-          {[1, 2, 3].map((floor) => (
+          {areas.map((area) => (
             <button
-              key={floor}
-              onClick={() => setActiveFloor(floor)}
+              key={area.id}
+              onClick={() => setActiveAreaId(area.id)}
               className={`px-6 py-3 font-medium transition-all ${
-                activeFloor === floor
+                activeAreaId === area.id
                   ? 'text-gray-900 dark:text-white border-b-2 border-emerald-500'
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
               }`}
             >
-              {floor === 1 ? '1st' : floor === 2 ? '2nd' : '3rd'} floor
+              {area.name}
             </button>
           ))}
         </div>
 
-        {/* Table Grid */}
-        <div
-          className="grid gap-6 p-6 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700"
-          style={{
-            gridTemplateRows: `repeat(${maxRow + 1}, minmax(100px, auto))`,
-            gridTemplateColumns: `repeat(${maxCol + 1}, minmax(120px, 1fr))`,
-          }}
+        {/* Table Map Container */}
+        <div 
+          className="relative bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden"
+          style={{ height: '500px' }}
+          onClick={() => setSelectedTableId(null)}
         >
-          {filteredTables.map((table) => renderTableCard(table))}
+          {/* Floor Plan Canvas */}
+          <div 
+            className="absolute bg-gray-50 dark:bg-gray-900/50 shadow-inner rounded-sm border border-gray-100 dark:border-gray-800 transition-all duration-300 origin-center"
+            style={{ 
+              width: activeArea?.width || 800, 
+              height: activeArea?.height || 600,
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%) scale(0.6)'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {areaTables.map((table) => renderTableCard(table))}
+          </div>
         </div>
       </div>
 

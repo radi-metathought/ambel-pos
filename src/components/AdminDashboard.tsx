@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import {
   Users,
   Package,
@@ -21,19 +21,43 @@ import {
   Bell,
   FileText,
   ChevronDown,
+  ChefHat,
+  MapPin,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import logo from '../assets/logo.jpg';
 
-type TabType = 'overview' | 'products' | 'categories' | 'users' | 'settings';
+type TabType = 
+  | 'overview' 
+  | 'products' 
+  | 'categories'
+  | 'recipes' 
+  | 'purchase-stock'
+  | 'branches'
+  | 'tables'
+  | 'employees'
+  | 'exchange-rate'
+  | 'currency-management'
+  | 'other-expense'
+  | 'reports'
+  | 'users'
+  | 'tax-settings'
+  | 'settings';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<TabType>('overview');
-  const [searchQuery, setSearchQuery] = useState('');
+  const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [managementOpen, setManagementOpen] = useState(true);
+
+  // Get current active tab from URL
+  const getCurrentTab = (): TabType => {
+    const path = location.pathname.split('/').pop();
+    return (path === 'dashboard' ? 'overview' : path) as TabType;
+  };
+
+  const activeTab = getCurrentTab();
 
   useEffect(() => {
     const isAuthenticated = localStorage.getItem('adminAuth');
@@ -47,6 +71,14 @@ const AdminDashboard = () => {
     localStorage.removeItem('adminAuth');
     toast.success('Logged out successfully');
     navigate('/admin');
+  };
+
+  const handleNavigation = (tabId: string) => {
+    if (tabId === 'overview') {
+      navigate('/admin/dashboard');
+    } else {
+      navigate(`/admin/dashboard/${tabId}`);
+    }
   };
 
   const stats = [
@@ -106,6 +138,12 @@ const AdminDashboard = () => {
       group: 'inventory',
     },
     {
+      id: 'recipes',
+      label: 'Recipes',
+      icon: ChefHat,
+      group: 'inventory',
+    },
+    {
       id: 'purchase-stock',
       label: 'Purchase Stock',
       icon: ShoppingCart,
@@ -113,9 +151,9 @@ const AdminDashboard = () => {
     },
     // Operations
     {
-      id: 'branch',
-      label: 'Branch',
-      icon: Home,
+      id: 'branches',
+      label: 'Branches',
+      icon: MapPin,
       group: 'operations',
     },
     {
@@ -221,7 +259,7 @@ const AdminDashboard = () => {
               return (
                 <button
                   key={item.id}
-                  onClick={() => setActiveTab(item.id as TabType)}
+                  onClick={() => handleNavigation(item.id)}
                   className={`w-full flex items-center ${
                     sidebarOpen ? 'justify-start space-x-3 px-3' : 'justify-center'
                   } py-2.5 rounded-md text-sm font-medium transition-all duration-150 ${
@@ -264,7 +302,7 @@ const AdminDashboard = () => {
                       initial={sidebarOpen ? { opacity: 0, height: 0 } : {}}
                       animate={sidebarOpen ? { opacity: 1, height: 'auto' } : {}}
                       exit={sidebarOpen ? { opacity: 0, height: 0 } : {}}
-                      onClick={() => setActiveTab(item.id as TabType)}
+                      onClick={() => handleNavigation(item.id)}
                       className={`w-full flex items-center ${
                         sidebarOpen ? 'justify-start space-x-3 px-3' : 'justify-center'
                       } py-2.5 rounded-md text-sm font-medium transition-all duration-150 ${
@@ -297,7 +335,7 @@ const AdminDashboard = () => {
               return (
                 <button
                   key={item.id}
-                  onClick={() => setActiveTab(item.id as TabType)}
+                  onClick={() => handleNavigation(item.id)}
                   className={`w-full flex items-center ${
                     sidebarOpen ? 'justify-start space-x-3 px-3' : 'justify-center'
                   } py-2.5 rounded-md text-sm font-medium transition-all duration-150 ${
@@ -329,7 +367,7 @@ const AdminDashboard = () => {
               return (
                 <button
                   key={item.id}
-                  onClick={() => setActiveTab(item.id as TabType)}
+                  onClick={() => handleNavigation(item.id)}
                   className={`w-full flex items-center ${
                     sidebarOpen ? 'justify-start space-x-3 px-3' : 'justify-center'
                   } py-2.5 rounded-md text-sm font-medium transition-all duration-150 ${
@@ -361,7 +399,7 @@ const AdminDashboard = () => {
               return (
                 <button
                   key={item.id}
-                  onClick={() => setActiveTab(item.id as TabType)}
+                  onClick={() => handleNavigation(item.id)}
                   className={`w-full flex items-center ${
                     sidebarOpen ? 'justify-start space-x-3 px-3' : 'justify-center'
                   } py-2.5 rounded-md text-sm font-medium transition-all duration-150 ${
@@ -393,7 +431,7 @@ const AdminDashboard = () => {
               return (
                 <button
                   key={item.id}
-                  onClick={() => setActiveTab(item.id as TabType)}
+                  onClick={() => handleNavigation(item.id)}
                   className={`w-full flex items-center ${
                     sidebarOpen ? 'justify-start space-x-3 px-3' : 'justify-center'
                   } py-2.5 rounded-md text-sm font-medium transition-all duration-150 ${
@@ -452,24 +490,7 @@ const AdminDashboard = () => {
 
         {/* Content Area */}
         <main className="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-gray-900">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            {activeTab === 'overview' && <OverviewTab stats={stats} />}
-            {activeTab === 'products' && (
-              <ProductsTab searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
-            )}
-            {activeTab === 'categories' && (
-              <CategoriesTab searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
-            )}
-            {activeTab === 'users' && (
-              <UsersTab searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
-            )}
-            {activeTab === 'settings' && <SettingsTab />}
-          </motion.div>
+          <Outlet />
         </main>
       </div>
     </div>

@@ -1,0 +1,22 @@
+{
+  "status": 200,
+  "data": {
+    "header": "Table Management",
+    "areas": [
+      { "id": "area-1", "name": "Main Hall", "width": 1200, "height": 800 },
+      { "id": "area-2", "name": "VIP Room", "width": 800, "height": 600 },
+      { "id": "area-3", "name": "Terrace", "width": 1000, "height": 700 }
+    ],
+    "tables": [
+      { "id": "t-1", "name": "T-01", "areaId": "area-1", "type": "square", "status": "available", "x": 100, "y": 100, "width": 80, "height": 80, "capacity": 4, "rotation": 0 },
+      { "id": "t-2", "name": "T-02", "areaId": "area-1", "type": "round", "status": "occupied", "x": 300, "y": 150, "width": 100, "height": 100, "capacity": 6, "rotation": 0 },
+      { "id": "t-3", "name": "T-03", "areaId": "area-1", "type": "square", "status": "reserved", "x": 500, "y": 100, "width": 80, "height": 80, "capacity": 4, "rotation": 45 },
+      { "id": "v-1", "name": "VIP-1", "areaId": "area-2", "type": "square", "status": "available", "x": 200, "y": 200, "width": 120, "height": 120, "capacity": 8, "rotation": 0 }
+    ],
+    "actions": [
+      { "type": "add_table", "table_type": "square", "label": "Square Table", "icon": "square" },
+      { "type": "add_table", "table_type": "round", "label": "Round Table", "icon": "circle" },
+      { "type": "save", "label": "Save Layout", "url": "/tables/layout/save", "method": "POST" }
+    ]
+  }
+}
