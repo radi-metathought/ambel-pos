@@ -72,21 +72,21 @@ const AdminDashboard = () => {
     const isAuthenticated = localStorage.getItem('adminAuth');
     if (!isAuthenticated) {
       toast.error('Please login to access admin panel');
-      navigate('/admin');
+      navigate('/');
     }
   }, [navigate]);
 
   const handleLogout = () => {
     localStorage.removeItem('adminAuth');
     toast.success('Logged out successfully');
-    navigate('/admin');
+    navigate('/');
   };
 
   const handleNavigation = (tabId: string) => {
     if (tabId === 'overview') {
-      navigate('/admin/dashboard');
+      navigate('/dashboard');
     } else {
-      navigate(`/admin/dashboard/${tabId}`);
+      navigate(`/dashboard/${tabId}`);
     }
   };
 

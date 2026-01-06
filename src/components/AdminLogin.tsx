@@ -18,7 +18,7 @@ const AdminLogin = () => {
   // Redirect if already authenticated
   useEffect(() => {
     if (authService.isAdminAuthenticated()) {
-      const from = (location.state as any)?.from?.pathname || '/admin/dashboard';
+      const from = (location.state as any)?.from?.pathname || '/dashboard';
       navigate(from, { replace: true });
     }
   }, [navigate, location]);
@@ -44,7 +44,7 @@ const AdminLogin = () => {
       toast.success('Welcome back, Admin!');
       
       // Redirect to the page they were trying to access, or dashboard by default
-      const from = (location.state as any)?.from?.pathname || '/admin/dashboard';
+      const from = (location.state as any)?.from?.pathname || '/dashboard';
       navigate(from, { replace: true });
     } catch (error: any) {
       const errorMessage = error.message || 'Invalid credentials. Please try again.';

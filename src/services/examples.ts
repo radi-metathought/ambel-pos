@@ -150,7 +150,7 @@ const handleAdminLogin = async (email: string, password: string) => {
   try {
     await authService.adminLogin({ email, password });
     // Navigate to admin dashboard
-    navigate('/admin/dashboard');
+    navigate('/dashboard');
   } catch (error) {
     // Error is already handled
   }

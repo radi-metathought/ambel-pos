@@ -43,11 +43,11 @@ function App() {
         <Routes>
           {/* Admin Routes - No Navbar */}
           {/* Public: Admin Login Page */}
-          <Route path="/admin" element={<AdminLogin />} />
+          <Route path="/" element={<AdminLogin />} />
           
           {/* Protected: Admin Dashboard and all sub-routes */}
           <Route
-            path="/admin/dashboard"
+            path="/dashboard"
             element={
               <ProtectedRoute>
                 <AdminDashboard />
@@ -76,26 +76,6 @@ function App() {
             <Route path="tax-settings" element={<TaxSettingsPage />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>
-
-          {/* Main App Routes - With Navbar */}
-          <Route
-            path="/*"
-            element={
-              <>
-                <Navbar />
-                <main className="pt-24 min-h-screen transition-all duration-300 pb-20 lg:pb-0">
-                  <div className="max-w-7xl mx-auto px-6 py-8">
-                    <Routes>
-                      <Route path="/" element={<Dashboard />} />
-                      <Route path="/orders" element={<Orders />} />
-                      <Route path="/stock" element={<Stock />} />
-                      <Route path="/table" element={<Table />} />
-                    </Routes>
-                  </div>
-                </main>
-              </>
-            }
-          />
         </Routes>
       </div>
     </ThemeProvider>
