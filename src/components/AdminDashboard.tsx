@@ -23,6 +23,9 @@ import {
   ChevronDown,
   ChefHat,
   MapPin,
+  CreditCard,
+  Percent,
+  Gift,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -34,12 +37,18 @@ type TabType =
   | 'categories'
   | 'recipes' 
   | 'purchase-stock'
+  | 'purchase-invoices'
+  | 'suppliers'
+  | 'stock-adjustments'
   | 'branches'
   | 'tables'
-  | 'employees'
+  | 'payment-method'
+  | 'discounts'
+  | 'promotions'
   | 'exchange-rate'
   | 'currency-management'
   | 'other-expense'
+  | 'other-income'
   | 'reports'
   | 'users'
   | 'tax-settings'
@@ -143,11 +152,30 @@ const AdminDashboard = () => {
       icon: ChefHat,
       group: 'inventory',
     },
+    // Stock Control
     {
       id: 'purchase-stock',
-      label: 'Purchase Stock',
+      label: 'Purchase Orders',
       icon: ShoppingCart,
-      group: 'inventory',
+      group: 'stock-control',
+    },
+    {
+      id: 'purchase-invoices',
+      label: 'Purchase Invoices',
+      icon: FileText,
+      group: 'stock-control',
+    },
+    {
+      id: 'suppliers',
+      label: 'Suppliers',
+      icon: Users,
+      group: 'stock-control',
+    },
+    {
+      id: 'stock-adjustments',
+      label: 'Stock Adjustments',
+      icon: Package,
+      group: 'stock-control',
     },
     // Operations
     {
@@ -163,9 +191,21 @@ const AdminDashboard = () => {
       group: 'operations',
     },
     {
-      id: 'employees',
-      label: 'Employees',
-      icon: Users,
+      id: 'payment-method',
+      label: 'Payment Method',
+      icon: CreditCard,
+      group: 'operations',
+    },
+    {
+      id: 'discounts',
+      label: 'Discounts',
+      icon: Percent,
+      group: 'operations',
+    },
+    {
+      id: 'promotions',
+      label: 'Promotions',
+      icon: Gift,
       group: 'operations',
     },
     // Financial
@@ -185,6 +225,12 @@ const AdminDashboard = () => {
       id: 'other-expense',
       label: 'Other Expense',
       icon: FileText,
+      group: 'financial',
+    },
+    {
+      id: 'other-income',
+      label: 'Other Income',
+      icon: TrendingUp,
       group: 'financial',
     },
     // Reports
@@ -317,6 +363,38 @@ const AdminDashboard = () => {
                   );
                 })}
           </AnimatePresence>
+
+          {/* Stock Control Section */}
+          {sidebarOpen && menuItems.some(item => item.group === 'stock-control') && (
+            <div className="pt-3 pb-1">
+              <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                Stock Control
+              </div>
+            </div>
+          )}
+
+          {menuItems
+            .filter((item) => item.group === 'stock-control')
+            .map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => handleNavigation(item.id)}
+                  className={`w-full flex items-center ${
+                    sidebarOpen ? 'justify-start space-x-3 px-3' : 'justify-center'
+                  } py-2.5 rounded-md text-sm font-medium transition-all duration-150 ${
+                    isActive
+                      ? 'bg-gray-700 text-white'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                  {sidebarOpen && <span>{item.label}</span>}
+                </button>
+              );
+            })}
 
           {/* Operations Section */}
           {sidebarOpen && menuItems.some(item => item.group === 'operations') && (

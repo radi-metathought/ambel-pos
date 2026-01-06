@@ -4,6 +4,7 @@ import Input from './Input';
 import Select from './Select';
 import Textarea from './Textarea';
 import Switch from './Switch';
+import DateInput from './DateInput';
 import { apiService } from '../../services';
 import toast from 'react-hot-toast';
 
@@ -277,7 +278,31 @@ const DynamicForm = ({ formConfig, onSuccess }: DynamicFormProps) => {
     e.preventDefault();
     setSubmitLoading(true);
 
-    console.log('📤 Submitting Form Data:', JSON.stringify(formData, null, 2));
+    // Clean up form data: convert tab-based arrays to clean field names
+    const cleanedData: Record<string, any> = {};
+    
+    Object.entries(formData).forEach(([key, value]) => {
+      if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object') {
+        // This is a multi-value tab array - clean up the field names
+        cleanedData[key] = value.map(item => {
+          const cleanedItem: Record<string, any> = {};
+          Object.entries(item).forEach(([fieldName, fieldValue]) => {
+            // Remove the tab key prefix if it exists (e.g., "items.productId" -> "productId")
+            const cleanFieldName = fieldName.includes('.') 
+              ? fieldName.split('.').pop() || fieldName 
+              : fieldName;
+            cleanedItem[cleanFieldName] = fieldValue;
+          });
+          return cleanedItem;
+        });
+      } else {
+        // Regular field or simple array
+        cleanedData[key] = value;
+      }
+    });
+
+    console.log('📤 Original Form Data:', JSON.stringify(formData, null, 2));
+    console.log('✨ Cleaned Form Data:', JSON.stringify(cleanedData, null, 2));
 
     try {
       const primaryAction = actions[0];
@@ -289,9 +314,9 @@ const DynamicForm = ({ formConfig, onSuccess }: DynamicFormProps) => {
       const sanitizedUrl = primaryAction.url.startsWith('/') ? primaryAction.url.substring(1) : primaryAction.url;
 
       if (typeof apiService[method] === 'function') {
-        await apiService[method](sanitizedUrl, formData);
+        await apiService[method](sanitizedUrl, cleanedData);
       } else {
-        await apiService.post(sanitizedUrl, formData);
+        await apiService.post(sanitizedUrl, cleanedData);
       }
 
       toast.success('Saved successfully');
@@ -396,6 +421,16 @@ const DynamicForm = ({ formConfig, onSuccess }: DynamicFormProps) => {
         );
         break;
 
+      case 'DateField':
+        fieldComponent = (
+          <DateInput
+            {...commonProps}
+            value={fieldValue || ''}
+            onChange={handleFieldChange}
+          />
+        );
+        break;
+
       case 'BooleanField':
         fieldComponent = (
           <Switch
@@ -442,15 +477,15 @@ const DynamicForm = ({ formConfig, onSuccess }: DynamicFormProps) => {
   return (
     <div className="flex flex-col bg-white dark:bg-gray-900">
       <form onSubmit={handleSubmit} className="flex flex-col">
-        <div className="space-y-12 pb-10">
+        <div className="space-y-8 pb-6">
           {tabs.map((tab, tabIdx) => {
             const tabKey = tab.title.toLowerCase().replace(/\s+/g, '_');
             const instanceCount = tabInstanceCounts[tabKey] || 1;
             
             return (
               <div key={tabIdx} className="animate-in fade-in slide-in-from-bottom-2 duration-500" style={{ animationDelay: `${tabIdx * 100}ms` }}>
-                <div className="mb-6">
-                  <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500 mb-1">
+                <div className="mb-5">
+                  <h4 className="text-sm font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
                     {tab.title}
                     {/* Debug indicator */}
                     {(tab.multivalue || (tab as any).multi_value) && (
@@ -459,15 +494,15 @@ const DynamicForm = ({ formConfig, onSuccess }: DynamicFormProps) => {
                       </span>
                     )}
                   </h4>
-                  <div className="h-px w-full bg-gradient-to-r from-gray-100 via-gray-50 to-transparent dark:from-gray-800 dark:via-gray-800/50 dark:to-transparent"></div>
+                  <div className="h-px w-full bg-gradient-to-r from-gray-200 via-gray-100 to-transparent dark:from-gray-700 dark:via-gray-800 dark:to-transparent"></div>
                 </div>
                 
                 {(tab.multivalue || (tab as any).multi_value) ? (
                   // Tab-level multi-value: render groups of fields
-                  <div className="space-y-8">
+                  <div className="space-y-6">
                     {Array.from({ length: instanceCount }).map((_, groupIdx) => (
                       <div key={groupIdx} className="relative">
-                        <div className="grid grid-cols-12 gap-x-8 gap-y-7 p-6 rounded-xl border-2 border-gray-100 dark:border-gray-800 bg-gray-50/30 dark:bg-gray-800/30">
+                        <div className="grid grid-cols-12 gap-x-6 gap-y-6 p-5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30">
                           {tab.field.map((field, fieldIdx) => (
                             <div 
                               key={fieldIdx} 
@@ -507,7 +542,7 @@ const DynamicForm = ({ formConfig, onSuccess }: DynamicFormProps) => {
                   </div>
                 ) : (
                   // Regular tab: render fields normally
-                  <div className="grid grid-cols-12 gap-x-8 gap-y-7">
+                  <div className="grid grid-cols-12 gap-x-6 gap-y-6">
                     {tab.field.map((field, fieldIdx) => (
                       <div 
                         key={fieldIdx} 

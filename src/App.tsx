@@ -15,13 +15,20 @@ import { CategoriesPage } from './pages/admin/CategoriesPage';
 import { RecipesPage } from './pages/admin/RecipesPage';
 import { BranchesPage } from './pages/admin/BranchesPage';
 import TablesManagementPage from './pages/admin/TablesManagementPage';
+import PurchaseInvoicesPage from './pages/admin/PurchaseInvoicesPage';
+import SuppliersPage from './pages/admin/SuppliersPage';
+import PaymentMethodPage from './pages/admin/PaymentMethodPage';
+import OtherIncomePage from './pages/admin/OtherIncomePage';
+import StockAdjustmentsPage from './pages/admin/StockAdjustmentsPage';
+import DiscountsPage from './pages/admin/DiscountsPage';
+import PromotionsPage from './pages/admin/PromotionsPage';
+import ReportsPage from './pages/admin/ReportsPage';
 import {
   PurchaseStockPage,
   EmployeesPage,
   ExchangeRatePage,
   CurrencyManagementPage,
   OtherExpensePage,
-  ReportsPage,
   UsersPage,
   TaxSettingsPage,
   SettingsPage,
@@ -52,12 +59,18 @@ function App() {
             <Route path="categories" element={<CategoriesPage />} />
             <Route path="recipes" element={<RecipesPage />} />
             <Route path="purchase-stock" element={<PurchaseStockPage />} />
+            <Route path="purchase-invoices" element={<PurchaseInvoicesPage />} />
+            <Route path="suppliers" element={<SuppliersPage />} />
+            <Route path="stock-adjustments" element={<StockAdjustmentsPage />} />
             <Route path="branches" element={<BranchesPage />} />
             <Route path="tables" element={<TablesManagementPage />} />
-            <Route path="employees" element={<EmployeesPage />} />
+            <Route path="payment-method" element={<PaymentMethodPage />} />
+            <Route path="discounts" element={<DiscountsPage />} />
+            <Route path="promotions" element={<PromotionsPage />} />
             <Route path="exchange-rate" element={<ExchangeRatePage />} />
             <Route path="currency-management" element={<CurrencyManagementPage />} />
             <Route path="other-expense" element={<OtherExpensePage />} />
+            <Route path="other-income" element={<OtherIncomePage />} />
             <Route path="reports" element={<ReportsPage />} />
             <Route path="users" element={<UsersPage />} />
             <Route path="tax-settings" element={<TaxSettingsPage />} />

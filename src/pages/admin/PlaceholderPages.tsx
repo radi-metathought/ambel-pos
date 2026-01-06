@@ -29,14 +29,19 @@ const PlaceholderPage = ({ title, description }: PlaceholderPageProps) => {
 };
 
 // Export individual page components
-export const PurchaseStockPage = () => (
-  <PlaceholderPage
-    title="Purchase Stock"
-    description="Manage stock purchases and supplier orders"
-  />
-);
+import { DynamicListPage } from '../../components/DynamicListPage';
 
+export const PurchaseStockPage = () => {
+  return <DynamicListPage endpoint="purchase-orders" />;
+};
 
+export const ExchangeRatePage = () => {
+  return <DynamicListPage endpoint="exchange-rates" />;
+};
+
+export const CurrencyManagementPage = () => {
+  return <DynamicListPage endpoint="currencies" />;
+};
 
 export const EmployeesPage = () => (
   <PlaceholderPage
@@ -45,26 +50,9 @@ export const EmployeesPage = () => (
   />
 );
 
-export const ExchangeRatePage = () => (
-  <PlaceholderPage
-    title="Exchange Rate"
-    description="Configure currency exchange rates"
-  />
-);
-
-export const CurrencyManagementPage = () => (
-  <PlaceholderPage
-    title="Currency Management"
-    description="Manage supported currencies and settings"
-  />
-);
-
-export const OtherExpensePage = () => (
-  <PlaceholderPage
-    title="Other Expenses"
-    description="Track and manage operational expenses"
-  />
-);
+export const OtherExpensePage = () => {
+  return <DynamicListPage endpoint="expenses" />;
+};
 
 export const ReportsPage = () => (
   <PlaceholderPage
@@ -73,19 +61,13 @@ export const ReportsPage = () => (
   />
 );
 
-export const UsersPage = () => (
-  <PlaceholderPage
-    title="Users"
-    description="Manage user accounts and access control"
-  />
-);
+export const UsersPage = () => {
+  return <DynamicListPage endpoint="users" />;
+};
 
-export const TaxSettingsPage = () => (
-  <PlaceholderPage
-    title="Tax Settings"
-    description="Configure tax rates and tax-related settings"
-  />
-);
+export const TaxSettingsPage = () => {
+  return <DynamicListPage endpoint="taxes" />;
+};
 
 export const SettingsPage = () => (
   <PlaceholderPage

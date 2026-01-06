@@ -9,7 +9,8 @@ import {
   Loader2,
   Plus,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Send
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { apiService } from '../services';
@@ -49,6 +50,7 @@ interface PageAction {
   navigate_to: string;
   color?: string;
   param?: any[];
+  method?: string;
 }
 
 interface DynamicPageResponse {
@@ -100,6 +102,9 @@ const CellRenderer = ({
         <div className="flex items-center justify-end gap-1">
           {value.map((action: PageAction, idx: number) => {
             const isDelete = action.icon === 'trash' || action.color === 'danger';
+            const isSend = action.icon === 'send' || action.color === 'info';
+            const isEdit = action.icon === 'pencil';
+            
             return (
               <button 
                 key={idx}
@@ -107,12 +112,16 @@ const CellRenderer = ({
                 className={`p-1.5 rounded-lg transition-all ${
                   isDelete 
                     ? 'text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20' 
+                    : isSend
+                    ? 'text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'
                     : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20'
                 }`}
                 title={action.text}
               >
-                {action.icon === 'pencil' ? <Edit className="w-4 h-4" /> : 
-                 action.icon === 'trash' ? <Trash2 className="w-4 h-4" /> : <Plus className="w-4 h-4" />
+                {isEdit ? <Edit className="w-4 h-4" /> : 
+                 isDelete ? <Trash2 className="w-4 h-4" /> : 
+                 isSend ? <Send className="w-4 h-4" /> : 
+                 <Plus className="w-4 h-4" />
                 }
               </button>
             );
@@ -123,6 +132,33 @@ const CellRenderer = ({
 
     case 'str':
     default:
+      // Handle object values (like Status with text and color)
+      if (typeof value === 'object' && value !== null) {
+        // Check if it's a status object with text and color
+        if (value.text && value.color) {
+          const colorClasses = {
+            success: 'bg-emerald-100 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400',
+            danger: 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400',
+            warning: 'bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400',
+            info: 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400',
+            default: 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-400'
+          };
+          const colorClass = colorClasses[value.color as keyof typeof colorClasses] || colorClasses.default;
+          
+          return (
+            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colorClass}`}>
+              {value.text}
+            </span>
+          );
+        }
+        // If it's an object with a 'name' property, display the name
+        if (value.name) {
+          return <span className="text-gray-500 dark:text-gray-400 text-sm">{value.name}</span>;
+        }
+        // Otherwise, try to stringify it
+        return <span className="text-gray-500 dark:text-gray-400 text-sm">{JSON.stringify(value)}</span>;
+      }
+      
       if (field === 'Stock') {
         const stock = parseInt(value) || 0;
         return (
@@ -198,7 +234,35 @@ export const DynamicListPage = ({ endpoint }: DynamicListPageProps) => {
       return;
     }
 
-    // 2. Handle Form/Action triggers for Modal
+    // 2. Handle Direct Actions with HTTP Methods (e.g., Send with PATCH)
+    if (action.method && action.method.toUpperCase() !== 'GET' && action.navigate_to === 'action') {
+      if (!window.confirm(`Are you sure you want to ${action.text}?`)) return;
+      
+      try {
+        setLoading(true);
+        const trimmedUrl = action.url?.trim() || '';
+        const sanitizedUrl = trimmedUrl.startsWith('/') ? trimmedUrl.substring(1) : trimmedUrl;
+        
+        const method = action.method.toLowerCase() as 'post' | 'patch' | 'put';
+        
+        // Execute the action with the specified method
+        if (typeof apiService[method] === 'function') {
+          await apiService[method](sanitizedUrl, {});
+        } else {
+          await apiService.post(sanitizedUrl, {});
+        }
+        
+        toast.success(`${action.text} successful`);
+        fetchPageMetadata();
+      } catch (error: any) {
+        toast.error(error.message || `Failed to ${action.text.toLowerCase()}`);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    // 3. Handle Form/Action triggers for Modal
     if (action.navigate_to === 'form' || action.navigate_to === 'action') {
       try {
         setLoading(true);
@@ -306,19 +370,19 @@ export const DynamicListPage = ({ endpoint }: DynamicListPageProps) => {
           </button>
         </div>
 
-        {/* minimalist Table */}
-        <div className="bg-white/50 dark:bg-gray-900/30 rounded-3xl overflow-hidden">
-          <table className="w-full text-left">
+        {/* Clean Table */}
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+          <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-50 dark:border-gray-800">
+              <tr className="border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
                 {visibleColumns.map((col, idx) => (
-                  <th key={idx} className={`px-6 py-5 text-[11px] uppercase tracking-[0.1em] font-semibold text-gray-400 dark:text-gray-500 ${col.type === 'action' || col.type === 'price' ? 'text-right' : ''}`}>
+                  <th key={idx} className={`px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${col.type === 'action' || col.type === 'price' ? 'text-right' : 'text-left'}`}>
                     {col.text}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
+            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
               <AnimatePresence mode="popLayout">
                 {displayData.length > 0 ? (
                   displayData.map((row, rowIdx) => (
@@ -327,10 +391,10 @@ export const DynamicListPage = ({ endpoint }: DynamicListPageProps) => {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: rowIdx * 0.02 }}
-                      className="group transition-colors hover:bg-gray-50/50 dark:hover:bg-gray-800/30"
+                      className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
                     >
                       {visibleColumns.map((col, colIdx) => (
-                        <td key={colIdx} className={`px-6 py-5 ${col.type === 'action' || col.type === 'price' ? 'text-right' : ''}`}>
+                        <td key={colIdx} className={`px-6 py-4 ${col.type === 'action' || col.type === 'price' ? 'text-right' : 'text-left'}`}>
                           <CellRenderer 
                             type={col.type} 
                             value={row[col.field]} 
@@ -343,10 +407,10 @@ export const DynamicListPage = ({ endpoint }: DynamicListPageProps) => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={visibleColumns.length} className="px-6 py-32 text-center">
-                      <div className="flex flex-col items-center opacity-20">
-                        <ListIcon className="w-12 h-12 mb-4" />
-                        <p className="text-xl font-light">No records found</p>
+                    <td colSpan={visibleColumns.length} className="px-6 py-20 text-center">
+                      <div className="flex flex-col items-center gap-3 text-gray-400">
+                        <ListIcon className="w-10 h-10" />
+                        <p className="text-sm font-medium">No records found</p>
                       </div>
                     </td>
                   </tr>
@@ -357,16 +421,16 @@ export const DynamicListPage = ({ endpoint }: DynamicListPageProps) => {
 
           {/* Pagination */}
           {activeTabContent && activeTabContent.total > 0 && (
-            <div className="p-6 border-t border-gray-50 dark:border-gray-800 flex items-center justify-between">
-              <p className="text-xs text-gray-400">
-                <span className="font-medium text-gray-900 dark:text-gray-200">{activeTabContent.total}</span> total entries
+            <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between bg-gray-50 dark:bg-gray-800/50">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                <span className="font-medium text-gray-900 dark:text-white">{activeTabContent.total}</span> total entries
               </p>
               <div className="flex gap-1">
-                <button className="p-2 text-gray-400 hover:text-gray-900 dark:hover:text-white disabled:opacity-30">
-                  <ChevronLeft className="w-5 h-5" />
+                <button className="p-2 text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors disabled:opacity-30">
+                  <ChevronLeft className="w-4 h-4" />
                 </button>
-                <button className="p-2 text-gray-400 hover:text-gray-900 dark:hover:text-white disabled:opacity-30">
-                  <ChevronRight className="w-5 h-5" />
+                <button className="p-2 text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors disabled:opacity-30">
+                  <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -379,7 +443,7 @@ export const DynamicListPage = ({ endpoint }: DynamicListPageProps) => {
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
         title={modalTitle}
-        size="md"
+        size="lg"
       >
         {formConfig && (
           <DynamicForm 
